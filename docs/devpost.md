@@ -94,15 +94,15 @@ forge, rovo, rovo-mcp, jira, confluence, ui-kit, javascript, node.js
 ## Testing instructions (for judges)
 1. Install Chesterton with the installation link on your Jira (and optionally Confluence) site.
 2. Go to **Jira settings → Apps → Chesterton setup** and click **Create demo data**. This creates project **PAY** with 5 linked issues.
-3. Open **PAY-3** ("Clean up: remove the weird 2 s sleep…"). The **Chesterton's Fence** panel shows 🔴 DO NOT REMOVE YET and traces PAY-3 → PAY-2 → incident PAY-1.
+3. Open **PAY-3** ("Clean up: remove the weird 2 s sleep…"). On a fresh install, click the **apps icon** under the issue title and choose **Chesterton's Fence** (Jira remembers it afterwards). The panel shows 🔴 DO NOT REMOVE YET and traces PAY-3 → PAY-2 → incident PAY-1.
 4. Click **📌 Pin this fence to the issue**. A comment with the verdict, evidence and next step appears on PAY-3.
 5. Open **PAY-4** (button rename). The verdict is 🟢 SAFE TO CHANGE.
 6. Open **PAY-5**. The verdict is 🟠 CHECK FIRST (the EUR decision).
-7. **Rovo:** open Rovo Chat, choose the **Chesterton** agent and ask "Is it safe to remove PAY-3?".
+7. **Rovo** (needs a site with Rovo, e.g. a Forge demo site from `forge site provision`): open **Ask Rovo → ☰ → View all agents → Chesterton** and ask "Is it safe to remove PAY-3?".
 8. **MCP (optional):** an org admin enables the app's tools under *Atlassian Administration → Connected apps*. Then connect any MCP client to `https://mcp.atlassian.com/forge/34df2211-5119-4409-b3ae-5695d71792b4`.
 
 No external accounts, API keys or configuration are needed.
 
 ## Links
 - Code: https://github.com/Shinigami-tech/chesterton
-- Installation link: (from the developer console, Distribution → Share)
+- Installation link: https://developer.atlassian.com/console/install/34df2211-5119-4409-b3ae-5695d71792b4?signature=AYABeLZBDmn7jLPi32mWhSfOVcgAAAADAAdhd3Mta21zAEthcm46YXdzOmttczp1cy13ZXN0LTI6NzA5NTg3ODM1MjQzOmtleS83MDVlZDY3MC1mNTdjLTQxYjUtOWY5Yi1lM2YyZGNjMTQ2ZTcAuAECAQB4CxqLTo9l4lqXuFjNim1xJM%2Bp%2F3TVP9xHS2BrU5DRRucBo6fG09DTRBAslqWkbgqO1gAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDKQauWFKVdoQdm0pyAIBEIA7pj4FDCfB%2FhgHAvV0FOrYOHjGgx8Se%2BQdVjfbIiSdhcG44QgKvCeu5tR7LpcyfPsmqpGQbPX%2FQz%2B7HcgAB2F3cy1rbXMAS2Fybjphd3M6a21zOmV1LXdlc3QtMTo3MDk1ODc4MzUyNDM6a2V5LzQ2MzBjZTZiLTAwYzMtNGRlMi04NzdiLTYyN2UyMDYwZTVjYwC4AQICAHi9bVMAkme4qVQX1fQHo6ePw3H40A7cGfz7yrmSfBWMXgE3NJziQFFIJiL8EscJfgRmAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMbAFKnpk4gN63PmvOAgEQgDsUUAUWX8LaOh8npj7WOMIkHa02iYBx5mBHjc4aZ4EqiafeBvj52Wto%2B35MHKh5OKDI%2FfKrr09%2BRTX6igAHYXdzLWttcwBLYXJuOmF3czprbXM6dXMtZWFzdC0xOjcwOTU4NzgzNTI0MzprZXkvNmMxMjBiYTAtNGNkNS00OTg1LWI4MmUtNDBhMDQ5NTJjYzU3ALgBAgIAeDYASx0XCjkny4iLV6vz%2BKtEGSGT6kdt0QRpkn6D%2FlVEAXNkRRYYoobBQQVo9XlJt7gAAAB%2BMHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAxsPx3LzYpz%2FdoOTTgCARCAO6mdFaIw2HIg4s7bdUp1l8eFsYy%2BZWEqVRBypJhWUYVxJDSBHP9Kl17lLg%2BCpWCWBfJ5Cbuons9RSaI9AgAAAAAMAAAQAAAAAAAAAAAAAAAAAHjcmNHQ%2FoqBF%2BZpPLVbefr%2F%2F%2F%2F%2FAAAAAQAAAAAAAAAAAAAAAQAAADJKm4%2Fcp%2Fr4OdnsQGs5qf%2FR5IIgUE46Kaut6d2s2BnA1GFZSuHPWlYl63deA9bubEuAjuKeWZmhiYOO69OqjFwp%2BTQ%3D&product=jira&product=confluence

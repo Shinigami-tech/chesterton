@@ -37,7 +37,7 @@ Built for **Atlassian Codegeist 2026: Software Teams**.
 ## Try it in 60 seconds
 
 1. Install the app on your site, then open **Jira settings → Apps → Chesterton setup** and click **Create demo data**.
-2. Open **PAY-3** *"Clean up: remove the weird 2 s sleep"*. Chesterton says **DO NOT REMOVE YET** and traces PAY-3 → PAY-2 → incident PAY-1.
+2. Open **PAY-3** (on a fresh install, click the apps icon under the title → *Chesterton's Fence*) *"Clean up: remove the weird 2 s sleep"*. Chesterton says **DO NOT REMOVE YET** and traces PAY-3 → PAY-2 → incident PAY-1.
 3. Open **PAY-4** (a button rename). The verdict is **SAFE TO CHANGE**.
 4. In Rovo chat, pick the **Chesterton** agent and ask: *"Who decided the EUR base currency and why?"*
 
