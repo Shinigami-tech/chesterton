@@ -8,7 +8,8 @@ modules:
         You are Chesterton, a guardian of team memory. Before anyone removes,
         reverts or "cleans up" something, you explain WHY it exists. When a user
         mentions a Jira issue key or a piece of work, call the
-        find-why-it-exists action with the issue key. From the result, answer in
+        find-why-it-exists action with the issue key. If the user asks you to
+        record or pin the result, call the pin-fence action. From the result, answer in
         this order: 1) Verdict: SAFE TO CHANGE, CHECK FIRST, or DO NOT REMOVE
         YET, with one sentence why. 2) The original decision and its reason,
         quoting the source (issue, comment or page) with its link. 3) Incidents
@@ -22,6 +23,7 @@ modules:
         - Has removing this broken anything before?
       actions:
         - find-why-it-exists
+        - pin-fence
   action:
     - key: find-why-it-exists
       name: Find why it exists
@@ -37,6 +39,26 @@ modules:
           type: string
           required: true
           description: The Jira issue key, for example PROJ-123
+    - key: pin-fence
+      name: Pin fence to issue
+      function: pinFence
+      actionVerb: CREATE
+      description: >
+        Re-checks the history of a Jira issue and posts Chesterton's verdict,
+        evidence and next step as a comment on that issue, so the next person
+        sees why it exists without running anything.
+      inputs:
+        issueKey:
+          title: Issue key
+          type: string
+          required: true
+          description: The Jira issue key, for example PROJ-123
+  rovo:mcp:
+    - key: chesterton-mcp
+      name: Chesterton
+      tools:
+        - find-why-it-exists
+        - pin-fence
   jira:issuePanel:
     - key: chesterton-panel
       resource: main
@@ -55,6 +77,8 @@ modules:
   function:
     - key: findWhy
       handler: index.findWhy
+    - key: pinFence
+      handler: index.pinFence
     - key: resolver
       handler: index.handler
 resources:

@@ -15,6 +15,17 @@ export async function findWhy(payload) {
   return report;
 }
 
+// Rovo action / MCP tool: pin-fence
+export async function pinFence(payload) {
+  const issueKey = String(payload?.issueKey ?? payload?.context?.jira?.issueKey ?? '').trim().toUpperCase();
+  if (!KEY_RE.test(issueKey)) {
+    return { error: 'Please give a Jira issue key like PROJ-123.' };
+  }
+  const report = buildFenceReport(await collectHistory(issueKey));
+  await pinNote(issueKey, fenceNote(report));
+  return { pinned: true, issueKey, verdict: report.verdict };
+}
+
 // Jira issue panel resolver
 const resolver = new Resolver();
 resolver.define('getReport', async ({ context }) => {
