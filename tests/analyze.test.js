@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildFenceReport, adfToText, scoreText } from '../src/lib/analyze.js';
+import { buildFenceReport, adfToText, scoreText, fenceNote } from '../src/lib/analyze.js';
 
 const adf = (t) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: t }] }] });
 const alice = { accountId: 'a', displayName: 'Alice' };
@@ -56,4 +56,35 @@ test('clean-up ticket one link away from a guarded fix => DO NOT REMOVE YET', ()
 test('a description that merely mentions "incident" is not counted as an incident', () => {
   const r = buildFenceReport({ issue: { key: 'X-1', fields: { summary: 'see the linked incident', reporter: alice } } });
   assert.notEqual(r.verdict, 'DO NOT REMOVE YET');
+});
+
+test('app/bot accounts are never listed as people to ask', () => {
+  const bot = { accountId: 'b1', displayName: 'Chesterton', accountType: 'app' };
+  const r = buildFenceReport({
+    issue: { key: 'X-2', fields: { summary: 'Keep retry delay', reporter: bot } },
+    comments: [{ id: '1', author: bot, body: 'We decided to keep the delay because the bank rate-limits retries.' }],
+  });
+  assert.equal(r.askPeople.length, 0);
+  assert.ok(!r.evidence[0].source.includes('Chesterton'));
+});
+
+test('owner of the linked guard issue is listed to ask', () => {
+  const bob = { accountId: 'u2', displayName: 'Bob', accountType: 'atlassian' };
+  const r = buildFenceReport({
+    issue: { key: 'PAY-3', fields: { summary: 'remove sleep' } },
+    linked: [{ key: 'PAY-2', summary: 'Keep 2 s wait', issuetype: 'Story', linkType: 'relates to' }],
+    neighbors: [{ key: 'PAY-2', assignee: bob, comments: [], linked: [] }],
+  });
+  assert.deepEqual(r.askPeople.map((p) => p.name), ['Bob']);
+});
+
+test('fenceNote summarises verdict, evidence and next step', () => {
+  const r = buildFenceReport({
+    issue: { key: 'X-3', fields: { summary: 'x' } },
+    linked: [{ key: 'X-9', summary: 'INCIDENT: double charge', issuetype: 'Bug', linkType: 'relates to' }],
+  });
+  const note = fenceNote(r);
+  assert.match(note, /^Chesterton check: DO NOT REMOVE YET/);
+  assert.match(note, /Incident: X-9/);
+  assert.match(note, /Next step:/);
 });

@@ -14,7 +14,7 @@ async function j(method, path, body) {
   return text ? JSON.parse(text) : {};
 }
 
-export async function seedDemo() {
+export async function seedDemo(ownerId) {
   const me = await j('GET', route`/rest/api/3/myself`);
   let project;
   try {
@@ -33,8 +33,16 @@ export async function seedDemo() {
   const types = (meta.issueTypes ?? meta.values ?? []).map((t) => t.name);
   const pick = (...names) => names.find((n) => types.includes(n)) ?? types.find((t) => t !== 'Epic' && t !== 'Subtask' && t !== 'Sub-task') ?? 'Task';
 
-  const create = async (summary, description, type) =>
-    (await j('POST', route`/rest/api/3/issue`, { fields: { project: { key: 'PAY' }, summary, issuetype: { name: type }, description: doc(...description) } })).key;
+  const create = async (summary, description, type, owned = true) => {
+    const fields = { project: { key: 'PAY' }, summary, issuetype: { name: type }, description: doc(...description) };
+    if (owned && ownerId) fields.assignee = { id: ownerId };
+    try {
+      return (await j('POST', route`/rest/api/3/issue`, { fields })).key;
+    } catch {
+      delete fields.assignee; // assignee not assignable on this site: create without it
+      return (await j('POST', route`/rest/api/3/issue`, { fields })).key;
+    }
+  };
   const comment = (key, ...text) => j('POST', route`/rest/api/3/issue/${key}/comment`, { body: doc(...text) });
   const link = (inward, outward) => j('POST', route`/rest/api/3/issueLink`, { type: { name: 'Relates' }, inwardIssue: { key: inward }, outwardIssue: { key: outward } });
 
@@ -53,7 +61,7 @@ export async function seedDemo() {
 
   const cleanup = await create('Clean up: remove the "weird" 2 s sleep in ChargeService to speed up checkout', [
     'Checkout feels slow. ChargeService has a hard-coded 2 second sleep before retries. Can we just delete it?',
-  ], pick('Task', 'Story'));
+  ], pick('Task', 'Story'), false);
   await link(guard, cleanup);
 
   const safe = await create('Rename "Pay now" button to "Complete purchase"', ['Copy change requested by marketing.'], pick('Task', 'Story'));

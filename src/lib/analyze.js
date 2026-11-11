@@ -36,13 +36,15 @@ function snippet(text, max = 240) {
  * @param {object[]} input.pages      Confluence pages (title, excerpt, url)
  * @param {string} input.baseUrl      Site base URL for links
  */
+const by = (a) => (a?.displayName && a.accountType !== 'app' ? ` by ${a.displayName}` : '');
+
 export function buildFenceReport({ issue, comments = [], linked = [], pages = [], neighbors = [], baseUrl = '' }) {
   const key = issue?.key ?? '?';
   const f = issue?.fields ?? {};
   const evidence = [];
   const people = new Map();
   const addPerson = (p, why) => {
-    if (!p?.accountId) return;
+    if (!p?.accountId || p.accountType === 'app') return; // bots can't explain decisions
     const cur = people.get(p.accountId) ?? { name: p.displayName ?? 'Unknown', reasons: new Set() };
     cur.reasons.add(why);
     people.set(p.accountId, cur);
@@ -59,7 +61,7 @@ export function buildFenceReport({ issue, comments = [], linked = [], pages = []
     const text = adfToText(c.body);
     const s = scoreText(text);
     if (s.decision || s.incident) {
-      evidence.push({ kind: s.incident >= 2 ? 'incident' : 'decision', source: `${key} comment by ${c.author?.displayName ?? 'someone'}`, url: `${baseUrl}/browse/${key}?focusedCommentId=${c.id}`, date: c.created, text: snippet(text), weight: s.decision + 2 * s.incident });
+      evidence.push({ kind: s.incident >= 2 ? 'incident' : 'decision', source: `${key} comment${by(c.author)}`, url: `${baseUrl}/browse/${key}?focusedCommentId=${c.id}`, date: c.created, text: snippet(text), weight: s.decision + 2 * s.incident });
       addPerson(c.author, 'explained the decision');
     }
   }
@@ -76,11 +78,12 @@ export function buildFenceReport({ issue, comments = [], linked = [], pages = []
   // Second hop: the danger is often one link away (a clean-up ticket linked to a guard that exists because of an incident).
   const seen = new Set([key, ...linked.map((l) => l.key)]);
   for (const n of neighbors) {
+    addPerson(n.assignee, `owns ${n.key}`);
     for (const c of n.comments ?? []) {
       const text = adfToText(c.body);
       const s = scoreText(text);
       if (s.decision || s.incident) {
-        evidence.push({ kind: s.incident >= 2 ? 'incident' : 'decision', source: `${n.key} comment by ${c.author?.displayName ?? 'someone'} (linked)`, url: `${baseUrl}/browse/${n.key}?focusedCommentId=${c.id}`, date: c.created, text: snippet(text), weight: s.decision + 2 * s.incident });
+        evidence.push({ kind: s.incident >= 2 ? 'incident' : 'decision', source: `${n.key} comment${by(c.author)} (linked)`, url: `${baseUrl}/browse/${n.key}?focusedCommentId=${c.id}`, date: c.created, text: snippet(text), weight: s.decision + 2 * s.incident });
         addPerson(c.author, `explained the decision on ${n.key}`);
       }
     }
@@ -124,4 +127,13 @@ export function buildFenceReport({ issue, comments = [], linked = [], pages = []
           ? 'Confirm with the decision owner that the original reason no longer applies, then record the new decision on this issue.'
           : 'Go ahead, and leave a comment explaining your change so the next person knows why.',
   };
+}
+
+/** Plain-text note Chesterton pins to the issue so the next person sees the fence without running anything. */
+export function fenceNote(r) {
+  const lines = [`Chesterton check: ${r.verdict}. ${r.reason}`];
+  for (const e of r.evidence.slice(0, 4)) lines.push(`- ${e.kind === 'incident' ? 'Incident' : e.kind === 'decision' ? 'Decision' : 'Related'}: ${e.source}: ${e.text}`);
+  if (r.askPeople.length) lines.push(`Ask before changing: ${r.askPeople.map((p) => p.name).join(', ')}.`);
+  lines.push(`Next step: ${r.nextStep}`);
+  return lines.join('\n');
 }

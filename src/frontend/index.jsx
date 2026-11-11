@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ForgeReconciler, { Box, Heading, Inline, Link, Lozenge, SectionMessage, Spinner, Stack, Text } from '@forge/react';
+import ForgeReconciler, { Box, Button, Heading, Inline, Link, Lozenge, SectionMessage, Spinner, Stack, Text } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
 const APPEARANCE = { 'DO NOT REMOVE YET': 'error', 'CHECK FIRST': 'warning', 'SAFE TO CHANGE': 'success' };
@@ -8,6 +8,11 @@ const KIND = { incident: ['Incident', 'removed'], decision: ['Decision', 'inprog
 const App = () => {
   const [r, setR] = useState(null);
   const [err, setErr] = useState(null);
+  const [pin, setPin] = useState('idle');
+  const pinIt = () => {
+    setPin('busy');
+    invoke('pinNote').then((res) => setPin(res?.ok ? 'done' : 'fail')).catch(() => setPin('fail'));
+  };
   useEffect(() => {
     invoke('getReport').then((res) => (res?.error ? setErr(res.error) : setR(res))).catch((e) => setErr(String(e)));
   }, []);
@@ -41,6 +46,11 @@ const App = () => {
         </Stack>
       )}
       <Text><Text as="strong">Next step: </Text>{r.nextStep}</Text>
+      {r.verdict !== 'SAFE TO CHANGE' && (
+        pin === 'done'
+          ? <SectionMessage appearance="success"><Text>Pinned as a comment. The next person will see this fence without opening Chesterton.</Text></SectionMessage>
+          : <Button appearance="primary" onClick={pinIt} isDisabled={pin === 'busy'}>{pin === 'busy' ? 'Pinning…' : pin === 'fail' ? 'Retry: pin this to the issue' : '📌 Pin this fence to the issue'}</Button>
+      )}
     </Stack>
   );
 };

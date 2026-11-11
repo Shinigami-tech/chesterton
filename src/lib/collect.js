@@ -31,9 +31,9 @@ export async function collectHistory(issueKey) {
   // One more hop through linked issues (max 5) to catch "guard -> incident" chains.
   const neighbors = await Promise.all(linked.slice(0, 5).map(async (l) => {
     try {
-      const ni = await json(await jira(route`/rest/api/3/issue/${l.key}?fields=summary,issuetype,issuelinks`));
+      const ni = await json(await jira(route`/rest/api/3/issue/${l.key}?fields=summary,issuetype,issuelinks,assignee`));
       const nc = (await json(await jira(route`/rest/api/3/issue/${l.key}/comment?maxResults=50`))).comments ?? [];
-      return { key: l.key, comments: nc, linked: mapLinks(ni) };
+      return { key: l.key, assignee: ni.fields?.assignee ?? null, comments: nc, linked: mapLinks(ni) };
     } catch {
       return { key: l.key, comments: [], linked: [] };
     }
@@ -60,4 +60,16 @@ export async function collectHistory(issueKey) {
   const self = issue.self ?? '';
   const baseUrl = self.split('/rest/')[0];
   return { issue, comments, linked, pages, neighbors, baseUrl };
+}
+
+/** Pins a Chesterton note as a comment on the issue (as the app). */
+export async function pinNote(issueKey, text) {
+  const body = { type: 'doc', version: 1, content: text.split('\n').map((t) => ({ type: 'paragraph', content: [{ type: 'text', text: t }] })) };
+  const res = await api.asApp().requestJira(route`/rest/api/3/issue/${issueKey}/comment`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body }),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+  return res.json();
 }

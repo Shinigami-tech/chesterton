@@ -1,6 +1,6 @@
 import Resolver from '@forge/resolver';
-import { collectHistory } from './lib/collect';
-import { buildFenceReport } from './lib/analyze';
+import { collectHistory, pinNote } from './lib/collect';
+import { buildFenceReport, fenceNote } from './lib/analyze';
 import { seedDemo } from './lib/seed';
 
 const KEY_RE = /^[A-Z][A-Z0-9_]+-\d+$/;
@@ -22,9 +22,20 @@ resolver.define('getReport', async ({ context }) => {
   if (!issueKey) return { error: 'No issue in context.' };
   return buildFenceReport(await collectHistory(issueKey));
 });
-resolver.define('seedDemo', async () => {
+resolver.define('pinNote', async ({ context }) => {
+  const issueKey = context?.extension?.issue?.key;
+  if (!issueKey) return { error: 'No issue in context.' };
   try {
-    return await seedDemo();
+    const report = buildFenceReport(await collectHistory(issueKey));
+    await pinNote(issueKey, fenceNote(report));
+    return { ok: true };
+  } catch (e) {
+    return { error: String(e?.message ?? e) };
+  }
+});
+resolver.define('seedDemo', async ({ context }) => {
+  try {
+    return await seedDemo(context?.accountId);
   } catch (e) {
     return { error: String(e?.message ?? e) };
   }
